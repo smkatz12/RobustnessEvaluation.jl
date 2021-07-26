@@ -1,4 +1,4 @@
-#module RobustnessEvaluation
+module RobustnessEvaluation
 
 using Flux
 using Statistics
@@ -84,4 +84,4 @@ function robustness_summary(network, X, Y; N_samples = 100, coeffs = [-0.74, -0.
         saliency_maps, ig_maps)
 end
 
-#end # module
+end # module
