@@ -1,6 +1,6 @@
 function adversarial_errors(network, X, Y; coeffs = [-0.74, -0.44],
-                            δ = 0.02, solver = GLPK.Optimizer, PGD = false,
-                            step_factor = 0.1, iterations = 600)
+                            δ = 0.02, solver = GLPK.Optimizer, use_gurobi = false,
+                            PGD = false, step_factor = 0.1, iterations = 600)
     """ Computes absolute errors with no adversarial perturbations
         Args:
             - network: neural network (NNV model)
@@ -10,6 +10,7 @@ function adversarial_errors(network, X, Y; coeffs = [-0.74, -0.44],
             - coeffs: coefficients to get output (linear combination of network outputs)
             - δ: radius for hyperrectangle to check error within
             - solver: solver for mixed integer programs (ignored if PGD true)
+            - use_gurobi: whether we are using gurobi (still need to put in solver)
             - PGD: whether or not to use PGD (if not, solve exactly with MIP Verify)
             - step_factor: step factor for PGD (ignored if PGD false)
             - iterations: number of steps for PGD (ignored if PGD false)
@@ -35,9 +36,10 @@ function adversarial_errors(network, X, Y; coeffs = [-0.74, -0.44],
     else
         @showprogress "Getting adversial results..." for i = 1:N_samples
             input_set = Hyperrectangle(X[:, i], Float32.(δ * ones(size(X, 1))))
-            maxvals[i] = optimize_ouput(network, input_set, coeffs = coeffs, solver = solver)
-            minvals[i] = optimize_ouput(network, input_set, coeffs = coeffs, solver = solver, 
-                                        maximize = false)
+            maxvals[i] = optimize_ouput(network, input_set, coeffs = coeffs, 
+            solver = solver, use_gurobi = use_gurobi)
+            minvals[i] = optimize_ouput(network, input_set, coeffs = coeffs, 
+            solver = solver, use_gurobi = use_gurobi, maximize = false)
         end
     end
 
@@ -46,7 +48,7 @@ function adversarial_errors(network, X, Y; coeffs = [-0.74, -0.44],
 end
 
 function optimize_ouput(network, input_set; 
-    coeffs = [-0.74, -0.44], solver = GLPK.Optimizer, maximize=true, 
+    coeffs = [-0.74, -0.44], solver = GLPK.solver, use_gurobi = false, maximize=true, 
     obj_threshold=(maximize ? -Inf : Inf))
     """ Function from Chris to get max output
     """
@@ -54,7 +56,11 @@ function optimize_ouput(network, input_set;
     bounds = NeuralVerification.get_bounds(Ai2z(), network, input_set; before_act=true)
 
     # Create your model
-    model = Model(with_optimizer(solver))
+    if use_gurobi
+        model = Model(with_optimizer(solver, OutputFlag = 0))
+    else
+        model = Model(with_optimizer(solver))
+    end
     z = init_vars(model, network, :z, with_input=true)
     δ = init_vars(model, network, :δ, binary=true)
     # get the pre-activation bounds:

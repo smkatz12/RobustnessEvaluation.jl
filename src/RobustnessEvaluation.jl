@@ -41,8 +41,8 @@ include("plotting.jl")
 export robustness_summary
 
 function robustness_summary(network, X, Y; N_samples = 100, coeffs = [-0.74, -0.44],
-    δ = 0.02, solver = GLPK.Optimizer, PGD = false, step_factor = 0.1, iterations = 600,
-    baseline = zeros(128))
+    δ = 0.02, solver = GLPK.Optimizer, use_gurobi = false, PGD = false, 
+    step_factor = 0.1, iterations = 600, baseline = zeros(128))
     """ Runs all functions to get robustness summary for a given network and dataset
         Args:
             - network: neural network to analyze (flux model)
@@ -53,6 +53,7 @@ function robustness_summary(network, X, Y; N_samples = 100, coeffs = [-0.74, -0.
             - coeffs: coefficients to get output (linear combination of network outputs)
             - δ: radius for hyperrectangle to check error within
             - solver: solver for mixed integer programs (ignored if PGD true)
+            - use_gurobi: whether we are using gurobi (still need to put in solver)
             - PGD: whether or not to use PGD (if not, solve exactly with MIP Verify)
             - step_factor: step factor for PGD (ignored if PGD false)
             - iterations: number of steps for PGD (ignored if PGD false)
@@ -74,8 +75,9 @@ function robustness_summary(network, X, Y; N_samples = 100, coeffs = [-0.74, -0.
     # Adversarial
     println("Calculating adversarial errors...")
     errors_adversarial_true, errors_adversarial_pred = adversarial_errors(nnv_network,
-        X_samples, Y_samples, coeffs = coeffs, δ = δ, solver = solver, PGD = PGD,
-        step_factor = step_factor, iterations = iterations)
+        X_samples, Y_samples, coeffs = coeffs, δ = δ, solver = solver, 
+        use_gurobi = use_gurobi, PGD = PGD, step_factor = step_factor, 
+        iterations = iterations)
     mae_adversarial_true = mean(errors_adversarial_true)
     mae_adversarial_pred = mean(errors_adversarial_pred)
 
