@@ -26,10 +26,19 @@ struct RobustnessSummary
     ig_maps
 end
 
+export nominal_errors
 include("nominal.jl")
+
+export adversarial_errors
 include("adversarial.jl")
+
+export saliency_map, integrated_gradients, get_mask
 include("explanations.jl")
+
+export plot_summary, plot_nominal_errors, plot_adversarial_errors, plot_adversarial_perturbations, plot_explanations
 include("plotting.jl")
+
+export robustness_summary
 
 function robustness_summary(network, X, Y; N_samples = 100, coeffs = [-0.74, -0.44],
     δ = 0.02, solver = GLPK.Optimizer, PGD = false, step_factor = 0.1, iterations = 600,
