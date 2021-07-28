@@ -12,6 +12,7 @@ using NeuralVerification: init_vars, BoundedMixedIntegerLP, encode_network!, _zÌ
 using GLPK
 using JuMP
 using LazySets
+using StatsBase
 import JuMP.MOI.OPTIMAL, JuMP.MOI.INFEASIBLE, JuMP.MOI.INFEASIBLE_OR_UNBOUNDED
 
 struct RobustnessSummary
